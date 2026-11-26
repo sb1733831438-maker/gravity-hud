@@ -56,6 +56,7 @@ test('install writes a backup, settings, and a working launcher', () => {
     }
     const config = JSON.parse(readFileSync(path.join(configDir, 'config.json'), 'utf8'));
     assert.equal(config.preset, 'compact');
+    assert.equal(config.segments, undefined);
 
     const again = install({ env, root, configDir });
     assert.equal(again.command, first.command);

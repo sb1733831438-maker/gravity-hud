@@ -14,7 +14,7 @@ Plain text of that same render, colors removed:
 ▸ TOOL · Gemini 4 Argon (Medium) · my-project · main* · plan · tasks 1
 ctx █▓░░░░░░░░░░ 14% 149k · week ███████████░ 94% 6d11h · $0.42
 tools ▸ run_command git · grep_search quota · view_file statusline.sh
-sub research running · review completed
+sub 1 running · 1 done
 todos 2/5 · Draw the context bar
 ```
 
@@ -111,24 +111,11 @@ The installer writes a config file the first time, and will not overwrite one th
   "preset": "compact",
   "theme": "gravity",
   "ascii": "auto",
-  "color": "auto",
-  "segments": {
-    "model": true,
-    "project": true,
-    "git": true,
-    "agent": true,
-    "context": true,
-    "quota": true,
-    "mode": true,
-    "sandbox": true,
-    "tasks": true,
-    "tools": false,
-    "subagents": false,
-    "todos": false,
-    "cost": false
-  }
+  "color": "auto"
 }
 ```
+
+The installer writes those four keys. Add a `segments` object only when you want to override the preset. A `segments` object that is a complete copy of some preset is ignored, so changing `preset` to `full` switches the layout even if an older install had written every flag out.
 
 Presets:
 
@@ -140,13 +127,13 @@ Presets:
 
 Themes are `gravity` (default), `dawn`, `ember`, and `mono`. They use the 16-color ANSI palette so they survive the `agy` TUI. `colors` can replace individual ANSI codes, for example `{ "model": "95", "good": "96" }`. `bars.width` sets the meter length (4–20). `gitTimeoutMs` clamps the local `git status` (50–2000, default 180).
 
-Segment flags in the file win over the preset. Set `"tools": true` on `compact` if you only want the tool line.
+Individual segment flags still win over the preset. Set `"tools": true` on `compact` if you only want the tool line.
 
 ## How todos and tools are read
 
 `agy` does not put the checklist on stdin. The status line reads `transcript_path` from the session JSON. Each line is a step. Tool calls live on `PLANNER_RESPONSE.tool_calls` (`name`, `args`). The following step (`VIEW_FILE`, `RUN_COMMAND`, `CODE_ACTION`, …) is the result.
 
-Todos come from task artifacts:
+On agy 1.5.18 the checklist is the latest `update_steps` call. `steps` is a JSON string of `{status, title}` objects, with status `pending`, `in_progress`, or `done`. Older transcripts still work:
 
 - `write_to_file` of `task.md` (or `ArtifactMetadata.ArtifactType` of `task`) replaces the checklist from `CodeContent`.
 - `replace_file_content` and `multi_replace_file_content` update matching lines from `ReplacementContent` and `ReplacementChunks`.
@@ -186,7 +173,7 @@ See [SECURITY.md](SECURITY.md).
 
 - `vcs` in the [status line docs](https://antigravity.google/docs/cli/statusline/) lists `type` (`git`, `jj`, `hg`). The official example script also reads `branch` and `dirty`, which are not in that table. gravity-hud runs `git status` for branch and dirty state, and uses payload `branch` / `dirty` only when git does not return in time. `jj` and `hg` show the type, and a branch only when the payload includes one.
 - The transcript step shape is not specified on the status line page. The parser follows public descriptions of `transcript.jsonl` and the [hooks tool list](https://antigravity.google/docs/hooks/) (`CodeContent`, `TargetFile`, `ReplacementContent`, `ReplacementChunks`, `CommandLine`, `task_boundary`). A session captured from a newer CLI could use different argument names; unknown names are skipped.
-- The official payload example stores the transcript at `~/.gemini/antigravity/brain/<id>/.system_generated/logs/transcript.jsonl`. On agy 1.5.18 the status line still sets `transcript_path` under `~/.gemini/antigravity/brain/` (before sign-in the conversation id is empty, so the path is `.../brain/.system_generated/logs/transcript.jsonl`), while the CLI writes the real transcript under `~/.gemini/antigravity-cli/brain/<id>/`. `transcript_path` is used when it is present. If it is absent, both directories are tried.
+- The official payload example stores the transcript at `~/.gemini/antigravity/brain/<id>/.system_generated/logs/transcript.jsonl`. On agy 1.5.18 that `transcript_path` is still under `~/.gemini/antigravity/brain/`, and before sign-in the conversation id is empty (`.../brain/.system_generated/logs/transcript.jsonl`), but the CLI writes the real file under `~/.gemini/antigravity-cli/brain/<id>/` (`transcript.jsonl`, with `transcript_full.jsonl` beside it). gravity-hud uses the payload path when that file exists, then the antigravity-cli path with the same id, then either brain directory. A pre-auth path with no id is skipped when the file is not there.
 - `thinking` is rendered because the official example handles it. It is not in the documented `agent_state` list (`idle`, `working`, `tool_use`, `reviewing`, `authenticating`, `initializing`, `error`).
 - A checklist that exists only in the head of a transcript larger than 1.5 MB can be missed until a later edit falls in the tail.
 - Quota bucket ids are not a closed list. The tightest remaining bucket is shown, plus a second bucket when the terminal is at least 120 columns.

@@ -5,10 +5,11 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { stripAnsi, visibleLength } from '../lib/ansi.js';
-import { resolveConfig, loadConfig } from '../lib/config.js';
+import { resolveConfig, loadConfig, PRESETS } from '../lib/config.js';
 import { formatReset } from '../lib/format.js';
 import { renderHud } from '../lib/render.js';
 import { parseSession, resolveTranscriptPath } from '../lib/session.js';
+import { loadTranscript } from '../lib/transcript.js';
 import { renderSample } from '../lib/preview.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -54,7 +55,8 @@ test('full preset adds tools, subagents, todos, and cost from the sample', () =>
   assert.match(text, /run_command git/);
   assert.match(text, /view_file statusline\.sh/);
   assert.match(text, /grep_search quota/);
-  assert.match(text, /research running/);
+  assert.match(text, /1 running/);
+  assert.match(text, /1 done/);
   assert.match(text, /todos 2\/5/);
   assert.match(text, /Draw the context bar/);
   assert.match(text, /\$0\.42/);
@@ -257,10 +259,7 @@ test('agy 1.5.18 pre-auth payload renders without null fields', () => {
   const { session, redact } = parseSession(raw);
   assert.deepEqual(redact, []);
   assert.equal(session.email, undefined);
-  assert.equal(
-    resolveTranscriptPath(session, {}),
-    '/home/box/.gemini/antigravity/brain/.system_generated/logs/transcript.jsonl',
-  );
+  assert.equal(resolveTranscriptPath(session, { GRAVITY_HUD_HOME: '/tmp/no-such-home' }), '');
   const withoutPath = { ...session, transcript_path: '' };
   assert.equal(resolveTranscriptPath(withoutPath, { GRAVITY_HUD_HOME: '/tmp/no-such-home' }), '');
   const text = stripAnsi(renderHud({
@@ -276,6 +275,39 @@ test('agy 1.5.18 pre-auth payload renders without null fields', () => {
   for (const line of text.split('\n')) {
     assert.ok(visibleLength(line) <= 160, line);
   }
+});
+
+test('changing preset wins over a saved segment snapshot', () => {
+  const snapshot = { ...PRESETS.compact };
+  const resolved = resolveConfig({ preset: 'full', segments: snapshot });
+  assert.equal(resolved.segments.tools, true);
+  assert.equal(resolved.segments.todos, true);
+  assert.equal(resolved.segments.subagents, true);
+  const custom = resolveConfig({ preset: 'compact', segments: { tools: true } });
+  assert.equal(custom.segments.tools, true);
+  assert.equal(custom.segments.todos, false);
+});
+
+test('signed-in agy 1.5.18 session renders model, counts, and confirm', () => {
+  const raw = readFileSync(path.join(root, 'fixtures', 'session-signed-in.json'), 'utf8');
+  const { session } = parseSession(raw);
+  const transcript = loadTranscript(path.join(root, 'fixtures', 'transcript-signed-in.jsonl'), null);
+  const text = stripAnsi(renderHud({
+    session: { ...session, task_count: null, tool_confirmation_pending: true, agent_state: 'working' },
+    config: resolveConfig({ preset: 'full', color: false }),
+    transcript,
+    env: {},
+  }));
+  assert.match(text, /WORKING/);
+  assert.match(text, /kimi-k2\.6/);
+  assert.match(text, /59%/);
+  assert.match(text, /agy-proj/);
+  assert.match(text, /quota —/);
+  assert.match(text, /todos 2\/2/);
+  assert.match(text, /sub 2 done/);
+  assert.match(text, /run_command python3/);
+  assert.match(text, /confirm/);
+  assert.doesNotMatch(text, /tasks null|update_steps|manage_task|Keep the report short|research/);
 });
 
 test('corrupt config falls back and still renders', () => {

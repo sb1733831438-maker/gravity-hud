@@ -4,6 +4,7 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 import {
   applyLine,
   emptyTranscript,
@@ -11,8 +12,11 @@ import {
   parseChecklist,
   reduceRecord,
   summarizeTodos,
+  visibleTools,
 } from '../lib/transcript.js';
 import { isSafeTranscript, resolveTranscriptPath } from '../lib/session.js';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 test('checklist marks map to done, active, and pending', () => {
   const items = parseChecklist('- [x] one\n- [/] two\n- [ ] three\n');
@@ -106,7 +110,7 @@ test('task_boundary updates the current task and is not a tool chip', () => {
       args: { TaskName: 'Build the HUD', TaskStatus: 'Reading docs', Mode: 'EXECUTION' },
     }],
   });
-  assert.equal(state.tools.length, 0);
+  assert.equal(visibleTools(state.tools).length, 0);
   assert.equal(summarizeTodos(state).taskName, 'Build the HUD');
   assert.equal(summarizeTodos(state).label, 'Reading docs');
 });
@@ -192,6 +196,84 @@ test('transcript paths must be transcript files and must not look like secrets',
     assert.equal(resolved, file);
     assert.equal(resolveTranscriptPath({ conversation_id: '../secrets' }, { GRAVITY_HUD_HOME: home }), '');
     assert.equal(resolveTranscriptPath({ transcript_path: path.join(home, '.ssh', 'transcript.jsonl') }, { GRAVITY_HUD_HOME: home }), '');
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('JSON-encoded tool arguments and update_steps replace the checklist', () => {
+  const state = emptyTranscript();
+  reduceRecord(state, {
+    step_index: '2',
+    input_tokens: '10',
+    output_tokens: '3',
+    type: 'PLANNER_RESPONSE',
+    tool_calls: [
+      {
+        name: 'update_steps',
+        args: {
+          steps: JSON.stringify([
+            { status: 'done', title: 'Read README.md' },
+            { status: 'done', title: 'Create hello.py' },
+            { status: 'in_progress', title: 'Run hello.py with python3' },
+            { status: 'pending', title: 'Subagent review of hello.py' },
+          ]),
+        },
+      },
+      {
+        name: 'read_file',
+        args: { Path: JSON.stringify('/workspace/agy-proj/README.md') },
+      },
+    ],
+  });
+  reduceRecord(state, { type: 'GENERIC', status: 'DONE' });
+  reduceRecord(state, { type: 'GENERIC', status: 'DONE' });
+  assert.equal(visibleTools(state.tools)[0].target, 'README.md');
+  assert.equal(visibleTools(state.tools)[0].status, 'done');
+  const summary = summarizeTodos(state);
+  assert.equal(summary.done, 2);
+  assert.equal(summary.total, 4);
+  assert.equal(summary.label, 'Run hello.py with python3');
+  assert.equal(visibleTools(state.tools).some((tool) => tool.name === 'update_steps'), false);
+});
+
+test('signed-in transcript keeps short targets and the latest checklist', () => {
+  const state = loadTranscript(path.join(root, 'fixtures', 'transcript-signed-in.jsonl'), null);
+  const visible = visibleTools(state.tools);
+  assert.ok(visible.some((tool) => tool.name === 'read_file' && tool.target === 'README.md'));
+  assert.ok(visible.some((tool) => tool.name === 'write_file' && tool.target === 'hello.py'));
+  assert.ok(visible.some((tool) => tool.name === 'run_command' && tool.target === 'python3' && tool.status === 'done'));
+  assert.ok(visible.some((tool) => tool.name === 'schedule' && tool.status === 'running'));
+  assert.equal(visible.some((tool) => tool.name === 'update_steps' || tool.name === 'manage_task' || tool.name === 'manage_subagents'), false);
+  assert.ok(state.tools.some((tool) => tool.name === 'manage_task' && tool.status === 'error'));
+  assert.deepEqual(state.todos.items.map((item) => item.title), [
+    "Append print('bye') and run hello.py",
+    'Subagent lists folder files',
+  ]);
+  assert.equal(summarizeTodos(state).done, 2);
+  assert.equal(summarizeTodos(state).total, 2);
+});
+
+test('a missing payload transcript path falls back to the antigravity-cli file', () => {
+  const home = mkdtempSync(path.join(tmpdir(), 'gravity-hud-brain-'));
+  try {
+    const id = '51b46fa2-297a-491e-8dfc-5220ebd0ea27';
+    const cliFile = path.join(home, '.gemini', 'antigravity-cli', 'brain', id, '.system_generated', 'logs', 'transcript.jsonl');
+    mkdirSync(path.dirname(cliFile), { recursive: true });
+    writeFileSync(cliFile, '{}\n');
+    const given = path.join(home, '.gemini', 'antigravity', 'brain', id, '.system_generated', 'logs', 'transcript.jsonl');
+    const resolved = resolveTranscriptPath({
+      conversation_id: id,
+      transcript_path: given,
+    }, { GRAVITY_HUD_HOME: home });
+    assert.equal(resolved, cliFile);
+    const fullOnly = path.join(home, '.gemini', 'antigravity-cli', 'brain', 'other-id', '.system_generated', 'logs', 'transcript_full.jsonl');
+    mkdirSync(path.dirname(fullOnly), { recursive: true });
+    writeFileSync(fullOnly, '{}\n');
+    assert.equal(
+      resolveTranscriptPath({ conversation_id: 'other-id' }, { GRAVITY_HUD_HOME: home }),
+      fullOnly,
+    );
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

@@ -14,7 +14,7 @@
 ▸ TOOL · Gemini 4 Argon (Medium) · my-project · main* · plan · tasks 1
 ctx █▓░░░░░░░░░░ 14% 149k · week ███████████░ 94% 6d11h · $0.42
 tools ▸ run_command git · grep_search quota · view_file statusline.sh
-sub research running · review completed
+sub 1 running · 1 done
 todos 2/5 · Draw the context bar
 ```
 
@@ -111,24 +111,11 @@ node bin/gravity-hud.js doctor
   "preset": "compact",
   "theme": "gravity",
   "ascii": "auto",
-  "color": "auto",
-  "segments": {
-    "model": true,
-    "project": true,
-    "git": true,
-    "agent": true,
-    "context": true,
-    "quota": true,
-    "mode": true,
-    "sandbox": true,
-    "tasks": true,
-    "tools": false,
-    "subagents": false,
-    "todos": false,
-    "cost": false
-  }
+  "color": "auto"
 }
 ```
+
+安装程序只写这四个键。只有在你想覆盖预设时才加 `segments`。如果 `segments` 是某个预设的完整副本，它会被忽略，因此把 `preset` 改成 `full` 仍然会切换布局，即使旧的安装程序曾经把每个开关都写进文件。
 
 预设：
 
@@ -140,13 +127,13 @@ node bin/gravity-hud.js doctor
 
 主题有 `gravity`（默认）、`dawn`、`ember`、`mono`。它们只用 16 色 ANSI，以便在 `agy` 的 TUI 里保持可读。`colors` 可以替换单个 ANSI 色号，例如 `{ "model": "95", "good": "96" }`。`bars.width` 设置进度条长度（4–20）。`gitTimeoutMs` 限制本地 `git status` 的时间（50–2000，默认 180）。
 
-文件里的片段开关优先于预设。只想在 `compact` 上多看一行工具时，把 `"tools"` 设为 `true`。
+单独的片段开关仍然优先于预设。只想在 `compact` 上多看一行工具时，把 `"tools"` 设为 `true`。
 
 ## 待办和工具从哪里来
 
 `agy` 不会把清单放进 stdin。状态栏读取会话 JSON 里的 `transcript_path`。每一行是一个 step。工具调用在 `PLANNER_RESPONSE.tool_calls`（`name`、`args`）里，紧随其后的 step（`VIEW_FILE`、`RUN_COMMAND`、`CODE_ACTION` 等）是结果。
 
-待办来自任务产物：
+agy 1.5.18 的清单来自最近一次 `update_steps`。`steps` 是 JSON 字符串，元素为 `{status, title}`，status 为 `pending`、`in_progress` 或 `done`。更早的 transcript 仍然可用：
 
 - 写入 `task.md` 的 `write_to_file`（或 `ArtifactMetadata.ArtifactType` 为 `task`）用 `CodeContent` 替换整份清单。
 - `replace_file_content` 和 `multi_replace_file_content` 用 `ReplacementContent` 与 `ReplacementChunks` 更新对应条目。
@@ -186,7 +173,7 @@ gravity-hud 不会预测配额何时用完。如果需要节奏预测，agy-powe
 
 - [状态栏文档](https://antigravity.google/docs/cli/statusline/)里的 `vcs` 只列出 `type`（`git`、`jj`、`hg`）。官方示例脚本还会读 `branch` 和 `dirty`，这两项不在字段表里。gravity-hud 用 `git status` 取得分支和脏标记；只有 git 没有及时返回时，才退回载荷里的 `branch` / `dirty`。`jj` 和 `hg` 显示类型，仅当载荷里带了分支名时才显示分支。
 - 状态栏文档没有规定 transcript 的 step 格式。解析器依据公开的 `transcript.jsonl` 描述，以及[钩子文档中的工具参数](https://antigravity.google/docs/hooks/)（`CodeContent`、`TargetFile`、`ReplacementContent`、`ReplacementChunks`、`CommandLine`、`task_boundary`）。更新的 CLI 如果改了参数名，未知字段会被跳过。
-- 官方载荷示例把 transcript 放在 `~/.gemini/antigravity/brain/<id>/.system_generated/logs/transcript.jsonl`。agy 1.5.18 的状态栏载荷仍然把 `transcript_path` 指到 `~/.gemini/antigravity/brain/`（登录前会话 id 为空，路径是 `.../brain/.system_generated/logs/transcript.jsonl`），而 CLI 实际把 transcript 写在 `~/.gemini/antigravity-cli/brain/<id>/`。有 `transcript_path` 时以它为准；没有时两个目录都会试。
+- 官方载荷示例把 transcript 放在 `~/.gemini/antigravity/brain/<id>/.system_generated/logs/transcript.jsonl`。agy 1.5.18 的 `transcript_path` 仍指向 `~/.gemini/antigravity/brain/`，登录前会话 id 为空（`.../brain/.system_generated/logs/transcript.jsonl`），但 CLI 实际把文件写在 `~/.gemini/antigravity-cli/brain/<id>/`（`transcript.jsonl`，旁边还有 `transcript_full.jsonl`）。载荷路径上的文件存在时用它，否则改用同一 id 的 antigravity-cli 路径，再试两个 brain 目录。没有 id 且文件不存在的登录前路径会被跳过。
 - 官方示例脚本处理了 `thinking`，所以这里也会渲染它。它不在文档列出的 `agent_state` 里（`idle`、`working`、`tool_use`、`reviewing`、`authenticating`、`initializing`、`error`）。
 - 超过 1.5 MB 的 transcript 如果清单只写在文件头部，第一次读取可能看不到，直到后续编辑落在尾部。
 - 配额桶的 id 不是封闭枚举。默认显示剩余比例最低的一桶；终端宽度至少 120 列时再显示第二桶。

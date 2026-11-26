@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { copyFileSync, mkdtempSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
@@ -64,6 +64,31 @@ test('preview full preset stays inside the sample width', () => {
   for (const line of result.stdout.split(/\r?\n/)) {
     if (!line) continue;
     assert.ok([...line].length <= 100, line);
+  }
+});
+
+test('render --preset full uses the antigravity-cli transcript', () => {
+  const { home, env } = isolatedEnv();
+  try {
+    const id = '51b46fa2-297a-491e-8dfc-5220ebd0ea27';
+    const cliFile = path.join(home, '.gemini', 'antigravity-cli', 'brain', id, '.system_generated', 'logs', 'transcript.jsonl');
+    mkdirSync(path.dirname(cliFile), { recursive: true });
+    copyFileSync(path.join(root, 'fixtures', 'transcript-signed-in.jsonl'), cliFile);
+    const payload = JSON.parse(readFileSync(path.join(root, 'fixtures', 'session-signed-in.json'), 'utf8'));
+    payload.transcript_path = path.join(home, '.gemini', 'antigravity', 'brain', id, '.system_generated', 'logs', 'transcript.jsonl');
+    payload.workspace.project_dir = home;
+    payload.workspace.current_dir = home;
+    const full = run(['--preset', 'full', '--no-color'], { input: JSON.stringify(payload), env });
+    assert.equal(full.status, 0, full.stderr);
+    assert.match(full.stdout, /todos 2\/2/);
+    assert.match(full.stdout, /sub 2 done/);
+    assert.match(full.stdout, /run_command python3/);
+    assert.doesNotMatch(full.stdout, /update_steps|Keep the report short/);
+    const compact = run(['--no-color'], { input: JSON.stringify(payload), env });
+    assert.equal(compact.status, 0, compact.stderr);
+    assert.doesNotMatch(compact.stdout, /todos 2\/2/);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
   }
 });
 
