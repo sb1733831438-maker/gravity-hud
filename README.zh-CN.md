@@ -1,8 +1,37 @@
 # gravity-hud
 
+> [English](README.md) | 简体中文
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/sb1733831438-maker/gravity-hud/actions/workflows/ci.yml/badge.svg)](https://github.com/sb1733831438-maker/gravity-hud/actions/workflows/ci.yml)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18-339933.svg)](package.json)
+
 **非官方项目。** gravity-hud 是独立的开源软件，与 Google 没有附属、背书或赞助关系。Antigravity 是 Google LLC 的商标。
 
 这是 [Antigravity CLI](https://antigravity.google/docs/cli/statusline/)（`agy`）的实时状态栏。默认两行：代理在做什么、当前模型、所在仓库，以及上下文窗口和配额重置还剩多少。需要看到正在运行的工具和任务清单时，再打开 `full` 预设。
+
+## 安装
+
+npm 包还没有发布。从 git 克隆安装现在就能用。
+
+```bash
+git clone https://github.com/sb1733831438-maker/gravity-hud.git
+cd gravity-hud
+node bin/gravity-hud.js install
+```
+
+<!-- npm：即将发布，目前还没有。当 `npx gravity-hud` 能解析到这个包时，把下面这段移到 git clone 之前，并删掉这条注释。 -->
+
+```bash
+# 即将发布：包发布到 npm 之后
+npx gravity-hud install
+```
+
+需要 Node.js 18 或更新版本。安装后重启 `agy`；如果命令被保存成禁用状态，运行 `/statusline enable`。
+
+## 你会看到什么
+
+<!-- demo：当仓库里有 assets/demo.gif（一段真实的 agy 会话）时，在这里显示它，并保留 assets/hero.svg 作为后备。文件还不存在时不要链接 GIF。 -->
 
 ![gravity-hud 预览](assets/hero.svg)
 
@@ -20,23 +49,42 @@ todos 2/5 · Draw the context bar
 
 灵感来自 Jarrod Watts 的 [claude-hud](https://github.com/jarrodwatts/claude-hud)（MIT，Copyright (c) 2026 Jarrod Watts）。gravity-hud 是为 `agy` 另写的程序，不是该项目的分叉或换皮。
 
-## 功能
-
 - 代理状态、模型与 effort、项目目录，以及本地 git 分支。工作区有未提交改动时，分支名后带 `*`。
 - 上下文条（已用）和配额条（剩余），重置倒计时来自 `reset_in_seconds` 或 `reset_time`。
 - 窄终端会丢掉低优先级片段，而不是把一行拆乱。`TERM=dumb` 或 `--ascii` 时进度条改为 `#` 和 `-`。
 - 可选行在默认预设中关闭：当前与最近的工具、子代理，以及从会话 transcript 解析出的待办进度。
 - transcript 按增量解析。缓存记下文件偏移，刷新时不必重读整份日志。
-- 运行时零依赖。只需要 Node.js 18+。
+- 除 Node.js 之外没有运行时依赖。
 - JSON 缺字段或类型不明时，显示短横线或简短标签。进程仍然打印一行并以 0 退出，避免 `agy` 在连续失败后停用状态栏。
 
-## 安装
+不启动 `agy` 也能看示例：
 
 ```bash
-npx gravity-hud install
+node bin/gravity-hud.js preview
+node bin/gravity-hud.js preview --preset full --width 96
+node bin/gravity-hud.js < fixtures/session.json
 ```
 
-安装程序会把一个很小的启动脚本复制到 `~/.gemini/antigravity-cli/gravity-hud/`。如果 `~/.gemini/antigravity-cli/settings.json` 已经存在，会先做备份，然后写入：
+## 比较
+
+下面是截至 2026 年 11 月的公开项目，用来说明各自侧重，不是排名。
+
+| | gravity-hud | [agy-powerline](https://github.com/wassim-azi/agy-powerline) | [antigravity-cli-statusline](https://github.com/AndyAWD/antigravity-cli-statusline) | [agy-hud](https://github.com/franksde/agy-hud) | [antigravity-cli-statusline](https://github.com/weby-homelab/antigravity-cli-statusline) |
+| --- | --- | --- | --- | --- | --- |
+| transcript 工具与待办 | 有，增量解析 | 会话载荷上的小部件 | 大量指标 | 上下文、配额、模型、代理状态 | 载荷字段；不解析 transcript 清单 |
+| 上下文与配额 | 进度条和重置倒计时 | 进度条、节奏和耗尽预测 | 多个配额池和多语言 | 紧凑进度条 | 进度条、token 计数、重置倒计时 |
+| Git | 本地 git 的分支和脏标记 | 分支、领先/落后、stash、链接 | 分支和脏标记 | 有限 | 分支和脏标记，来自载荷或本地 git |
+| 主题 | 4 个预设，16 色 | 多套主题和实时编辑器 | 语言和标签样式 | 图标集 | 256 色加 Nerd Font，另有 16 色经典模式 |
+| 运行时依赖 | 除 Node.js 外无 | 无 | Node.js | Node.js（已打包脚本） | Bash 与 `jq`，或 Windows PowerShell |
+| 安装 | git clone，然后 `node bin/gravity-hud.js install` | `npx agy-powerline` | `agy plugin install` | 插件压缩包 | `install.sh` / `install.ps1` 修改 `settings.json` |
+| 网络 | 从不访问 | 项目说明中称没有 | 状态栏本身不需要 | 可以通过 `agy` 刷新配额 | 不上传会话载荷 |
+
+gravity-hud 不会预测配额何时用完。如果需要节奏预测，agy-powerline 是专门做这件事的。本项目从会话 transcript 读取工具和待办。[Weby Homelab 的状态栏](https://github.com/weby-homelab/antigravity-cli-statusline)是另一套 Bash 与 PowerShell 渲染器，带主机指标和按宽度打包的行。
+
+<details>
+<summary>安装细节、参数，以及 Antigravity 插件</summary>
+
+`node bin/gravity-hud.js install` 会把一个很小的启动脚本复制到 `~/.gemini/antigravity-cli/gravity-hud/`。如果 `~/.gemini/antigravity-cli/settings.json` 已经存在，会先做备份，然后写入：
 
 ```json
 {
@@ -47,34 +95,21 @@ npx gravity-hud install
 }
 ```
 
-Windows 上对应的命令是 `statusline.cmd`。`agy` 会展开命令开头的 `~`。之后重启 `agy`；如果之前把命令关掉了，运行 `/statusline enable`。
-
-包还没发到 npm 时，可以在检出的仓库里安装：
+Windows 上对应的命令是 `statusline.cmd`。`agy` 会展开命令开头的 `~`。
 
 ```bash
-node bin/gravity-hud.js install
-```
-
-常用参数：
-
-```bash
-gravity-hud install --dry-run
-gravity-hud install --preset full
-gravity-hud install --force          # 替换另一套状态栏命令
-gravity-hud uninstall                # 恢复之前的 statusLine
+node bin/gravity-hud.js install --dry-run
+node bin/gravity-hud.js install --preset full
+node bin/gravity-hud.js install --force    # 替换另一套状态栏命令
+node bin/gravity-hud.js uninstall          # 恢复之前的 statusLine
 ```
 
 如果现有的 `statusLine.command` 不是 gravity-hud，不带 `--force` 就不会改它。JSON 无法解析时，文件保持原样。写入通过一次重命名完成；在 Unix 上权限为 `0600`。`settings.json` 旁边最多保留五份带时间戳的备份。
 
-### Antigravity 插件
+插件安装会放上文件和 `/gravity-hud` 技能。[插件清单](https://antigravity.google/docs/build-plugins/)没有状态栏字段，所以它本身不会改 `settings.json`：
 
 ```bash
 agy plugin install https://github.com/sb1733831438-maker/gravity-hud
-```
-
-这会装上合法的插件（`plugin.json`、图标，以及 `/gravity-hud` 技能）。[插件清单](https://antigravity.google/docs/build-plugins/)没有状态栏字段，所以插件安装本身不会改 `settings.json`。装好之后再运行：
-
-```bash
 node ~/.gemini/config/plugins/gravity-hud/bin/gravity-hud.js install
 ```
 
@@ -84,16 +119,9 @@ node ~/.gemini/config/plugins/gravity-hud/bin/gravity-hud.js install
 /statusline ~/.gemini/antigravity-cli/gravity-hud/statusline.sh
 ```
 
-## 不启动 agy 也能看效果
+`node bin/gravity-hud.js doctor` 只说明状态栏是否已配置。它不打印命令字符串，也不打印任何会话字段。
 
-```bash
-node bin/gravity-hud.js preview
-node bin/gravity-hud.js preview --preset full --width 96
-node bin/gravity-hud.js < fixtures/session.json
-node bin/gravity-hud.js doctor
-```
-
-`preview` 只渲染仓库里的示例，并在 stderr 说明这一点。它不会读取你当前的仓库。
+</details>
 
 ## 配置
 
@@ -131,7 +159,7 @@ node bin/gravity-hud.js doctor
 
 ## 待办和工具从哪里来
 
-`agy` 不会把清单放进 stdin。状态栏读取会话 JSON 里的 `transcript_path`。每一行是一个 step。工具调用在 `PLANNER_RESPONSE.tool_calls`（`name`、`args`）里，紧随其后的 step（`VIEW_FILE`、`RUN_COMMAND`、`CODE_ACTION` 等）是结果。
+`agy` 不会把清单放进 stdin。状态栏读取会话 JSON 里的 `transcript_path`。每一行是一个 step。工具调用在 `PLANNER_RESPONSE.tool_calls`（`name`、`args`）里，紧随其后的 step（`VIEW_FILE`、`RUN_COMMAND`、`CODE_ACTION`、`GENERIC` 等）是结果。
 
 agy 1.5.18 的清单来自最近一次 `update_steps`。`steps` 是 JSON 字符串，元素为 `{status, title}`，status 为 `pending`、`in_progress` 或 `done`。更早的 transcript 仍然可用：
 
@@ -142,22 +170,6 @@ agy 1.5.18 的清单来自最近一次 `update_steps`。`steps` 是 JSON 字符�
 标记沿用任务文件的写法：`[ ]` 未开始，`[/]` 进行中，`[x]` 完成。普通源码文件里的勾选框会被忽略。工具标签只显示文件名或程序名，不显示完整命令行。
 
 缓存是配置目录下的一份小 JSON，只保存文件偏移和这些短标签。首次读取超过 1.5 MB 的文件时只扫尾部 512 KB，免得一次刷新太慢；之后的追加内容从保存的偏移继续读。
-
-## 比较
-
-下面是截至 2026 年 11 月的公开项目，用来说明各自侧重，不是排名。
-
-| | gravity-hud | [agy-powerline](https://github.com/wassim-azi/agy-powerline) | [antigravity-cli-statusline](https://github.com/AndyAWD/antigravity-cli-statusline) | [agy-hud](https://github.com/franksde/agy-hud) |
-| --- | --- | --- | --- | --- |
-| transcript 工具与待办 | 有，增量解析 | 会话载荷上的小部件 | 大量指标 | 上下文、配额、模型、代理状态 |
-| 上下文与配额 | 进度条和重置倒计时 | 进度条、节奏和耗尽预测 | 多个配额池和多语言 | 紧凑进度条 |
-| Git | 本地 git 的分支和脏标记 | 分支、领先/落后、stash、链接 | 分支和脏标记 | 有限 |
-| 主题 | 4 个预设，16 色 | 多套主题和实时编辑器 | 语言和标签样式 | 图标集 |
-| 运行时依赖 | 无 | 无 | Node.js | Node.js（已打包脚本） |
-| 安装 | `npx gravity-hud install` 修改 `settings.json` | `npx agy-powerline` | `agy plugin install` | 插件压缩包 |
-| 网络 | 从不访问 | 项目说明中称没有 | 状态栏本身不需要 | 可以通过 `agy` 刷新配额 |
-
-gravity-hud 不会预测配额何时用完。如果需要节奏预测，agy-powerline 是专门做这件事的。本项目的区别是读取 transcript。
 
 ## 隐私
 
@@ -172,7 +184,7 @@ gravity-hud 不会预测配额何时用完。如果需要节奏预测，agy-powe
 ## 已知限制
 
 - [状态栏文档](https://antigravity.google/docs/cli/statusline/)里的 `vcs` 只列出 `type`（`git`、`jj`、`hg`）。官方示例脚本还会读 `branch` 和 `dirty`，这两项不在字段表里。gravity-hud 用 `git status` 取得分支和脏标记；只有 git 没有及时返回时，才退回载荷里的 `branch` / `dirty`。`jj` 和 `hg` 显示类型，仅当载荷里带了分支名时才显示分支。
-- 状态栏文档没有规定 transcript 的 step 格式。解析器依据公开的 `transcript.jsonl` 描述，以及[钩子文档中的工具参数](https://antigravity.google/docs/hooks/)（`CodeContent`、`TargetFile`、`ReplacementContent`、`ReplacementChunks`、`CommandLine`、`task_boundary`）。更新的 CLI 如果改了参数名，未知字段会被跳过。
+- 状态栏文档没有规定 transcript 的 step 格式。解析器依据已采集的 agy 1.5.18 会话（`update_steps`、`read_file`、`write_file`、`run_command`、`GENERIC` 结果）以及[钩子文档中的工具参数](https://antigravity.google/docs/hooks/)。未知参数名会被跳过。
 - 官方载荷示例把 transcript 放在 `~/.gemini/antigravity/brain/<id>/.system_generated/logs/transcript.jsonl`。agy 1.5.18 的 `transcript_path` 仍指向 `~/.gemini/antigravity/brain/`，登录前会话 id 为空（`.../brain/.system_generated/logs/transcript.jsonl`），但 CLI 实际把文件写在 `~/.gemini/antigravity-cli/brain/<id>/`（`transcript.jsonl`，旁边还有 `transcript_full.jsonl`）。载荷路径上的文件存在时用它，否则改用同一 id 的 antigravity-cli 路径，再试两个 brain 目录。没有 id 且文件不存在的登录前路径会被跳过。
 - 官方示例脚本处理了 `thinking`，所以这里也会渲染它。它不在文档列出的 `agent_state` 里（`idle`、`working`、`tool_use`、`reviewing`、`authenticating`、`initializing`、`error`）。
 - 超过 1.5 MB 的 transcript 如果清单只写在文件头部，第一次读取可能看不到，直到后续编辑落在尾部。
@@ -191,11 +203,3 @@ CI 在 Ubuntu、macOS 和 Windows 上对 Node.js 20 与 22 运行 lint 和 `node
 ## 许可证
 
 [MIT](LICENSE)。Copyright (c) 2026 Binbin Sun。
-
-## GitHub 仓库信息
-
-建议的仓库描述：
-
-> Real-time statusline HUD for the Antigravity CLI (agy). Context, quota, git, and transcript-aware tools and todos. Unofficial.
-
-建议的 topics：`antigravity`、`antigravity-cli`、`agy`、`agy-cli`、`statusline`、`statusbar`、`cli`、`terminal`、`developer-tools`、`gemini`。
