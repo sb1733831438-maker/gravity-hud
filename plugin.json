@@ -1,0 +1,21 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "gravity-hud",
+  "displayName": "Gravity HUD",
+  "version": "0.1.0",
+  "description": "Real-time statusline HUD for the Antigravity CLI, with context and quota bars, git state, and transcript-aware tools and todos.",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "Install gravity-hud as my agy status line",
+    "Show context, quota, and the current tool in my status line",
+    "Turn on transcript todos in gravity-hud"
+  ],
+  "author": {
+    "name": "Binbin Sun",
+    "url": "https://github.com/sb1733831438-maker"
+  },
+  "homepage": "https://github.com/sb1733831438-maker/gravity-hud",
+  "repository": "https://github.com/sb1733831438-maker/gravity-hud",
+  "license": "MIT",
+  "keywords": ["statusline", "agy", "quota", "git", "terminal"]
+}

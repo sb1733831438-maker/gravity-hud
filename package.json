@@ -1,0 +1,52 @@
+{
+  "name": "gravity-hud",
+  "version": "0.1.0",
+  "description": "Real-time statusline HUD for the Antigravity CLI (agy). Context, quota, git, and transcript-aware tools and todos. Unofficial.",
+  "type": "module",
+  "bin": {
+    "gravity-hud": "bin/gravity-hud.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "fixtures",
+    "skills",
+    "assets/logo.svg",
+    "assets/hero.svg",
+    "plugin.json",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test",
+    "lint": "node scripts/lint.js",
+    "preview": "node bin/gravity-hud.js preview --preset full",
+    "hero": "node scripts/render-hero.js"
+  },
+  "keywords": [
+    "antigravity",
+    "antigravity-cli",
+    "agy",
+    "agy-cli",
+    "statusline",
+    "statusbar",
+    "cli",
+    "terminal",
+    "gemini",
+    "developer-tools"
+  ],
+  "author": "Binbin Sun",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sb1733831438-maker/gravity-hud.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sb1733831438-maker/gravity-hud/issues"
+  },
+  "homepage": "https://github.com/sb1733831438-maker/gravity-hud#readme"
+}
