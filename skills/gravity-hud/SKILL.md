@@ -16,9 +16,11 @@ Installing this plugin does not by itself change `settings.json`. The Antigravit
 1. From a shell, run one of:
 
 ```bash
-npx gravity-hud install
+npx github:sb1733831438-maker/gravity-hud install
 node ~/.gemini/config/plugins/gravity-hud/bin/gravity-hud.js install
 ```
+
+An npm package is planned and is not published yet. From a git clone, `node bin/gravity-hud.js install` runs the same installer.
 
 2. If a different status line is already configured, stop and ask before re-running with `--force`.
 3. Restart `agy`, or run `/statusline enable` if the command was saved with `"enabled": false`.
