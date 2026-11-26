@@ -30,11 +30,11 @@ Node.js 18 or newer. Restart `agy` after install, or run `/statusline enable` if
 
 ## What you see
 
-<!-- demo: when assets/demo.gif exists (a real agy session), show it here and keep assets/hero.svg as the fallback image. Do not link the GIF until the file is in the repo. -->
+![gravity-hud in a real agy session](assets/demo.gif)
+
+A recorded `agy` 1.5.18 session with the `full` preset: model, context bar, live tools, todos, and a subagent. The static image below is the same renderer, built from [`fixtures/session.json`](fixtures/session.json) and [`fixtures/transcript.jsonl`](fixtures/transcript.jsonl). The default install is the first two lines. `full` adds tools, subagents, todos, and cost. Sample git state in the preview is `main*`.
 
 ![gravity-hud preview](assets/hero.svg)
-
-The picture is the real renderer, not a mock. It is `assets/hero.svg`, built from [`fixtures/session.json`](fixtures/session.json) and [`fixtures/transcript.jsonl`](fixtures/transcript.jsonl). The default install is the first two lines. `full` adds tools, subagents, todos, and cost. Sample git state in the preview is `main*`.
 
 Plain text of that same render, colors removed:
 

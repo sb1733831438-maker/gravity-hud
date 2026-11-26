@@ -30,11 +30,11 @@ node bin/gravity-hud.js install
 
 ## 你会看到什么
 
-<!-- demo：当仓库里有 assets/demo.gif（一段真实的 agy 会话）时，在这里显示它，并保留 assets/hero.svg 作为后备。文件还不存在时不要链接 GIF。 -->
+![gravity-hud 在真实 agy 会话中](assets/demo.gif)
+
+这是一段真实的 `agy` 1.5.18 会话录像，使用 `full` 预设，可以看到模型、上下文条、正在调用的工具、待办，以及一个子代理。下面的静图是同一套渲染器的输出，来自 [`fixtures/session.json`](fixtures/session.json) 和 [`fixtures/transcript.jsonl`](fixtures/transcript.jsonl)，生成文件为 `assets/hero.svg`。默认安装只显示前两行。`full` 预设额外显示工具、子代理、待办和费用。预览里的 git 状态是示例值 `main*`。
 
 ![gravity-hud 预览](assets/hero.svg)
-
-图是渲染器的真实输出，不是手绘稿。它来自 [`fixtures/session.json`](fixtures/session.json) 和 [`fixtures/transcript.jsonl`](fixtures/transcript.jsonl)，生成文件为 `assets/hero.svg`。默认安装只显示前两行。`full` 预设额外显示工具、子代理、待办和费用。预览里的 git 状态是示例值 `main*`。
 
 同一段输出去掉颜色后的纯文本：
 
