@@ -14,6 +14,12 @@ test('parseGitStatus reads branch and dirty files', () => {
     dirty: true,
   });
   assert.deepEqual(parseGitStatus('## HEAD (no branch)\n'), { branch: 'HEAD', dirty: false });
+  assert.deepEqual(parseGitStatus('## No commits yet on master\n'), { branch: 'master', dirty: false });
+  assert.deepEqual(parseGitStatus('## Initial commit on main\n'), { branch: 'main', dirty: false });
+  assert.deepEqual(parseGitStatus('## No commits yet on feature/hud\nA  file.js\n'), {
+    branch: 'feature/hud',
+    dirty: true,
+  });
   assert.equal(parseGitStatus(''), null);
 });
 
@@ -47,6 +53,30 @@ test('local git reports a clean and a dirty worktree', () => {
     );
     assert.equal(dirty.branch, 'main');
     assert.equal(dirty.dirty, true);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('a repository with no commits reports the branch name only', () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'gravity-hud-unborn-'));
+  try {
+    const git = (args) => {
+      const result = spawnSync('git', args, {
+        cwd: dir,
+        encoding: 'utf8',
+        env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+      });
+      assert.equal(result.status, 0, result.stderr);
+    };
+    git(['init', '-b', 'master']);
+    const live = collectGit(
+      { workspace: { project_dir: dir }, vcs: { type: 'git' } },
+      resolveConfig({}),
+    );
+    assert.equal(live.branch, 'master');
+    assert.equal(live.dirty, false);
+    assert.doesNotMatch(live.branch, /commit/i);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

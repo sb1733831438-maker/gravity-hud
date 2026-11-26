@@ -186,7 +186,7 @@ gravity-hud 不会预测配额何时用完。如果需要节奏预测，agy-powe
 
 - [状态栏文档](https://antigravity.google/docs/cli/statusline/)里的 `vcs` 只列出 `type`（`git`、`jj`、`hg`）。官方示例脚本还会读 `branch` 和 `dirty`，这两项不在字段表里。gravity-hud 用 `git status` 取得分支和脏标记；只有 git 没有及时返回时，才退回载荷里的 `branch` / `dirty`。`jj` 和 `hg` 显示类型，仅当载荷里带了分支名时才显示分支。
 - 状态栏文档没有规定 transcript 的 step 格式。解析器依据公开的 `transcript.jsonl` 描述，以及[钩子文档中的工具参数](https://antigravity.google/docs/hooks/)（`CodeContent`、`TargetFile`、`ReplacementContent`、`ReplacementChunks`、`CommandLine`、`task_boundary`）。更新的 CLI 如果改了参数名，未知字段会被跳过。
-- 官方载荷示例把 transcript 放在 `~/.gemini/antigravity/brain/<id>/.system_generated/logs/transcript.jsonl`。一些社区笔记使用 `~/.gemini/antigravity-cli/brain/...`。有 `transcript_path` 时以它为准；没有时两个位置都会试。
+- 官方载荷示例把 transcript 放在 `~/.gemini/antigravity/brain/<id>/.system_generated/logs/transcript.jsonl`。agy 1.5.18 的状态栏载荷仍然把 `transcript_path` 指到 `~/.gemini/antigravity/brain/`（登录前会话 id 为空，路径是 `.../brain/.system_generated/logs/transcript.jsonl`），而 CLI 实际把 transcript 写在 `~/.gemini/antigravity-cli/brain/<id>/`。有 `transcript_path` 时以它为准；没有时两个目录都会试。
 - 官方示例脚本处理了 `thinking`，所以这里也会渲染它。它不在文档列出的 `agent_state` 里（`idle`、`working`、`tool_use`、`reviewing`、`authenticating`、`initializing`、`error`）。
 - 超过 1.5 MB 的 transcript 如果清单只写在文件头部，第一次读取可能看不到，直到后续编辑落在尾部。
 - 配额桶的 id 不是封闭枚举。默认显示剩余比例最低的一桶；终端宽度至少 120 列时再显示第二桶。

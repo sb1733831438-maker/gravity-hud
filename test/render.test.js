@@ -8,7 +8,7 @@ import { stripAnsi, visibleLength } from '../lib/ansi.js';
 import { resolveConfig, loadConfig } from '../lib/config.js';
 import { formatReset } from '../lib/format.js';
 import { renderHud } from '../lib/render.js';
-import { parseSession } from '../lib/session.js';
+import { parseSession, resolveTranscriptPath } from '../lib/session.js';
 import { renderSample } from '../lib/preview.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -240,6 +240,42 @@ test('reset_time is used when reset_in_seconds is absent', () => {
     now,
   }));
   assert.match(text, /1h/);
+});
+
+test('agy 1.5.18 pre-auth payload renders without null fields', () => {
+  const raw = readFileSync(path.join(root, 'fixtures', 'session-pre-auth.json'), 'utf8');
+  const payload = JSON.parse(raw);
+  assert.equal(payload.version, '1.5.18');
+  assert.equal(payload.agent_state, 'authenticating');
+  assert.equal(payload.model, null);
+  assert.equal(payload.context_window.current_usage, null);
+  assert.equal(payload.session_id, '');
+  assert.equal(payload.conversation_id, '');
+  assert.equal(payload.quota, undefined);
+  assert.equal(payload.cost, undefined);
+  assert.equal(payload.email, undefined);
+  const { session, redact } = parseSession(raw);
+  assert.deepEqual(redact, []);
+  assert.equal(session.email, undefined);
+  assert.equal(
+    resolveTranscriptPath(session, {}),
+    '/home/box/.gemini/antigravity/brain/.system_generated/logs/transcript.jsonl',
+  );
+  const withoutPath = { ...session, transcript_path: '' };
+  assert.equal(resolveTranscriptPath(withoutPath, { GRAVITY_HUD_HOME: '/tmp/no-such-home' }), '');
+  const text = stripAnsi(renderHud({
+    session,
+    config: resolveConfig({ preset: 'full', color: false }),
+    env: {},
+  }));
+  assert.match(text, /AUTH/);
+  assert.match(text, /agy-proj/);
+  assert.match(text, /0%/);
+  assert.match(text, /quota —/);
+  assert.doesNotMatch(text, /Gemini|null|undefined|@/);
+  for (const line of text.split('\n')) {
+    assert.ok(visibleLength(line) <= 160, line);
+  }
 });
 
 test('corrupt config falls back and still renders', () => {
