@@ -1,0 +1,61 @@
+{
+  "cwd": "/home/ada/my-project",
+  "session_id": "12345678-abcd-ef01-2345-6789abcdef01",
+  "conversation_id": "12345678-abcd-ef01-2345-6789abcdef01",
+  "transcript_path": "fixtures/transcript.jsonl",
+  "conversation_title": "Explain the factorial function",
+  "model": {
+    "id": "Gemini 4 Argon (Medium)",
+    "display_name": "Gemini 4 Argon (Medium)",
+    "effort": "medium"
+  },
+  "workspace": {
+    "current_dir": "/home/ada/my-project",
+    "project_dir": "/home/ada/my-project"
+  },
+  "version": "1.4.5",
+  "context_window": {
+    "total_input_tokens": 88244,
+    "total_output_tokens": 61074,
+    "context_window_size": 1048576,
+    "used_percentage": 14.24,
+    "remaining_percentage": 85.76,
+    "current_usage": {
+      "input_tokens": 63382,
+      "output_tokens": 346,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 20857
+    }
+  },
+  "exceeds_200k_tokens": false,
+  "product": "antigravity",
+  "quota": {
+    "gemini-weekly": {
+      "remaining_fraction": 0.9378,
+      "reset_time": "2026-07-06T07:50:32Z",
+      "reset_in_seconds": 560580
+    }
+  },
+  "agent_state": "tool_use",
+  "vcs": {
+    "type": "git"
+  },
+  "cycle_mode": "plan",
+  "sandbox": {
+    "enabled": false
+  },
+  "subagents": [
+    { "name": "research", "role": "explorer", "status": "running" },
+    { "name": "review", "role": "reviewer", "status": "completed" }
+  ],
+  "artifact_count": 2,
+  "plan_tier": "Pro",
+  "email": "developer@example.com",
+  "task_count": 1,
+  "terminal_width": 100,
+  "cost": {
+    "total_usd": 0.4213,
+    "subagent_usd": 0,
+    "estimated": false
+  }
+}
