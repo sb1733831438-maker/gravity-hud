@@ -12,19 +12,18 @@
 
 ## 安装
 
-npm 包还没有发布。从 git 克隆安装现在就能用。
+```bash
+npx github:sb1733831438-maker/gravity-hud install
+```
+
+这条命令运行本仓库的 `gravity-hud` 可执行文件。npm 包在计划中，目前还没有发布。
+
+也可以从克隆安装：
 
 ```bash
 git clone https://github.com/sb1733831438-maker/gravity-hud.git
 cd gravity-hud
 node bin/gravity-hud.js install
-```
-
-<!-- npm：即将发布，目前还没有。当 `npx gravity-hud` 能解析到这个包时，把下面这段移到 git clone 之前，并删掉这条注释。 -->
-
-```bash
-# 即将发布：包发布到 npm 之后
-npx gravity-hud install
 ```
 
 需要 Node.js 18 或更新版本。安装后重启 `agy`；如果命令被保存成禁用状态，运行 `/statusline enable`。
@@ -76,7 +75,7 @@ node bin/gravity-hud.js < fixtures/session.json
 | Git | 本地 git 的分支和脏标记 | 分支、领先/落后、stash、链接 | 分支和脏标记 | 有限 | 分支和脏标记，来自载荷或本地 git |
 | 主题 | 4 个预设，16 色 | 多套主题和实时编辑器 | 语言和标签样式 | 图标集 | 256 色加 Nerd Font，另有 16 色经典模式 |
 | 运行时依赖 | 除 Node.js 外无 | 无 | Node.js | Node.js（已打包脚本） | Bash 与 `jq`，或 Windows PowerShell |
-| 安装 | git clone，然后 `node bin/gravity-hud.js install` | `npx agy-powerline` | `agy plugin install` | 插件压缩包 | `install.sh` / `install.ps1` 修改 `settings.json` |
+| 安装 | `npx github:sb1733831438-maker/gravity-hud install` | `npx agy-powerline` | `agy plugin install` | 插件压缩包 | `install.sh` / `install.ps1` 修改 `settings.json` |
 | 网络 | 从不访问 | 项目说明中称没有 | 状态栏本身不需要 | 可以通过 `agy` 刷新配额 | 不上传会话载荷 |
 
 gravity-hud 不会预测配额何时用完。如果需要节奏预测，agy-powerline 是专门做这件事的。本项目从会话 transcript 读取工具和待办。[Weby Homelab 的状态栏](https://github.com/weby-homelab/antigravity-cli-statusline)是另一套 Bash 与 PowerShell 渲染器，带主机指标和按宽度打包的行。

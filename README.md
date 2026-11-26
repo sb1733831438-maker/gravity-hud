@@ -12,19 +12,18 @@ A real-time status line for the [Antigravity CLI](https://antigravity.google/doc
 
 ## Install
 
-The npm package is not published yet. Installing from a git clone works today.
+```bash
+npx github:sb1733831438-maker/gravity-hud install
+```
+
+That runs this repository's `gravity-hud` bin. An npm package is planned and is not published yet.
+
+From a clone:
 
 ```bash
 git clone https://github.com/sb1733831438-maker/gravity-hud.git
 cd gravity-hud
 node bin/gravity-hud.js install
-```
-
-<!-- npm: coming soon, not published yet. When `npx gravity-hud` resolves, move the block below above the git clone and delete this comment. -->
-
-```bash
-# coming soon, after the package is published
-npx gravity-hud install
 ```
 
 Node.js 18 or newer. Restart `agy` after install, or run `/statusline enable` if the command was saved disabled.
@@ -76,7 +75,7 @@ Public projects as of November 2026. This is a feature sketch, not a scoreboard.
 | Git | Branch and dirty, from local git | Branch, ahead/behind, stash, links | Branch and dirty | Limited | Branch and dirty, from the payload or local git |
 | Themes | 4 presets, 16-color | Many themes and a live editor | Locales and label styles | Icon set | 256-color with Nerd Font glyphs, plus a 16-color classic mode |
 | Runtime dependencies | None beyond Node.js | None | Node.js | Node.js (bundled script) | Bash and `jq`, or Windows PowerShell |
-| Install | git clone, then `node bin/gravity-hud.js install` | `npx agy-powerline` | `agy plugin install` | Plugin archive | `install.sh` / `install.ps1` edits `settings.json` |
+| Install | `npx github:sb1733831438-maker/gravity-hud install` | `npx agy-powerline` | `agy plugin install` | Plugin archive | `install.sh` / `install.ps1` edits `settings.json` |
 | Network | Never | None claimed by the project | Not required for the status line | Can refresh quota via `agy` | Does not upload the session payload |
 
 gravity-hud does not forecast when a quota will run out. That is the part of agy-powerline worth using if you want pacing. This project reads the conversation transcript for tools and todos. The [Weby Homelab statusline](https://github.com/weby-homelab/antigravity-cli-statusline) is a separate Bash and PowerShell renderer with host metrics and width-packed rows.
